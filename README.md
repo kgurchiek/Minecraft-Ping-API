@@ -26,7 +26,7 @@ Same as /ping
 Example usage:
 CubeCraft's favicon: https://yourDomainHere.com/favicon/?ip=play.cubecraft.net&port=25565&protocol=761
 
-<div align="center">
+<div>
     <img src="https://ping.cornbread2100.com/favicon/?ip=play.cubecraft.net&port=25565" alt="CubeCraft Logo"/>
 </div>
 
