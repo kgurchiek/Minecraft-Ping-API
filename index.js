@@ -72,6 +72,8 @@ function isCracked(ip, port, version, callback) {
 }
 
 function ping(ip, port, protocol, callback) {
+  var packetLength = 0;
+
   setTimeout(function() {
     if (!hasResponded) {
       callback("timeout");
@@ -106,7 +108,53 @@ function ping(ip, port, protocol, callback) {
   client.on('data', (data) => {
     //client.destroy(); // kill client after server's response
     response += data.toString();
-    
+
+    if (packetLength == 0) packetLength = varint.decode(data) + 6;
+
+    if (Buffer.byteLength(response) >= packetLength) {
+      callback(response);
+      hasResponded = true;
+    }
+  });
+
+  client.on('error', (err) => {
+    //console.error(`Error: ${err}`);
+  });
+
+  client.on('close', () => {
+    //console.log('Connection closed');
+  });
+}
+
+function bedrockPing(ip, port, protocol, callback) {
+  console.log('running bedrockping')
+  setTimeout(function() {
+    if (!hasResponded) {
+      callback("timeout");
+    }
+  }, 5000);
+
+  var hasResponded = false;
+  var response = '';
+
+  const client = new net.Socket();
+  client.connect(port, ip, () => {
+    const handshakePacket = Buffer.from([
+      0x05, // packet ID
+      0x00, // request ID
+      0x00, // payload (empty)
+      0x01 // payload (empty)
+    ]);
+    var packetLength = Buffer.alloc(1);
+    packetLength.writeUInt8(handshakePacket.length);
+    var buffer = Buffer.concat([packetLength, handshakePacket]);
+    client.write(buffer);
+  });
+
+  client.on('data', (data) => {
+    //client.destroy(); // kill client after server's response
+    response += data.toString();
+
     if (Buffer.byteLength(response) >= varint.decode(data) + 6) {
       callback(response);
       hasResponded = true;
@@ -151,7 +199,7 @@ http.createServer(function(request, response) {
       response.end();
     } else {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
-      
+
       ping(args.ip, args.port, args.protocol, (result) => {
         if (result == 'timeout' || JSON.parse(result.substring(result.indexOf('{'))).favicon == null) {
           fs.readFile('default.png', (err, data) => {
@@ -165,7 +213,7 @@ http.createServer(function(request, response) {
           });
         } else {
           response.setHeader('Content-Type', 'image/png');
-        response.write(Buffer.from(JSON.parse(result.substring(result.indexOf('{'))).favicon.substring(22), 'base64'));
+          response.write(Buffer.from(JSON.parse(result.substring(result.indexOf('{'))).favicon.substring(22), 'base64'));
           response.end();
         }
       });
@@ -180,8 +228,28 @@ http.createServer(function(request, response) {
       response.end();
     } else {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
-      
+
       ping(args.ip, args.port, args.protocol, (result) => {
+        if (result == 'timeout') {
+          response.end(result);
+        } else {
+          response.write(result.substring(result.indexOf('{')));
+          response.end();
+        }
+      });
+    }
+  } else if (url.parse(request.url).pathname == '/bedrockping/') {
+    args = querystring.parse(url.parse(request.url).query);
+    if (args.ip == null || args.ip == '') {
+      response.write("ERROR: Missing variable 'ip'");
+      response.end();
+    } else if (args.port == null || args.port == '') {
+      response.write("ERROR: Missing variable 'port'");
+      response.end();
+    } else {
+      if (args.protocol == null || args.protocol == '') args.protocol = 0;
+
+      bedrockPing(args.ip, args.port, args.protocol, (result) => {
         if (result == 'timeout') {
           response.end(result);
         } else {
