@@ -6,12 +6,13 @@ const url = require('url');
 const querystring = require('querystring');
 const minecraftData = require("minecraft-data");
 
-function isCracked(ip, port, version, protocol, callback) {
+function isCracked(ip, port, version, callback) {
   setTimeout(function() {
     if (!hasResponded) callback("timeout");
   }, 4000);
 
   const mcData = minecraftData(version);
+  const protocol = mcData.version.version;
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
   var hasResponded = false;
 
@@ -122,7 +123,7 @@ function ping(ip, port, protocol, callback) {
 }
 
 http.createServer(function(request, response) {
-  console.log(request.url)
+  //console.log(request.url)
   args = querystring.parse(url.parse(request.url).query);
   if (url.parse(request.url).pathname == '/cracked/') {
     if (args.ip == null || args.ip == '') {
@@ -134,11 +135,8 @@ http.createServer(function(request, response) {
     } else if (args.version == null || args.version == '') {
       response.write("ERROR: Missing variable 'version'");
       response.end();
-    } else if (args.protocol == null || args.protocol == '') {
-      response.write("ERROR: Missing variable 'protocol'");
-      response.end();
     } else {
-      isCracked(args.ip, args.port, args.version, args.protocol, (result) => {
+      isCracked(args.ip, args.port, args.version, (result) => {
         response.write(result.toString());
         response.end();
       });
