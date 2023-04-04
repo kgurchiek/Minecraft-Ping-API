@@ -43,11 +43,8 @@ The port of the Minecraft server.
 #### version
 The version of the Mineccraft server.
 
-#### protocol
-The Minecraft protocol to attempt a login with
-
 Example usage:
-Check if CubeCraft is cracked: https://yourDomainHere.com/favicon/?ip=play.cubecraft.net&port=25565&version=1.19.3&protocol=761
+Check if CubeCraft is cracked: https://yourDomainHere.com/favicon/?ip=play.cubecraft.net&port=25565&version=1.19.3
 
 ## Try it out
 This api is currently hosted at https://ping.cornbread2100.com.
