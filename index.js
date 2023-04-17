@@ -107,6 +107,7 @@ function ping(ip, port, protocol, callback) {
 
   client.on('data', (data) => {
     //client.destroy(); // kill client after server's response
+    const uint8array = new TextEncoder().encode(data);
     const decoder = new TextDecoder('utf-8')
     response += decoder.decode(uint8array);
 
