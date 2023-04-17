@@ -107,9 +107,7 @@ function ping(ip, port, protocol, callback) {
 
   client.on('data', (data) => {
     //client.destroy(); // kill client after server's response
-    const uint8array = new TextEncoder().encode(data);
-    const decoder = new TextDecoder('utf-8')
-    response += decoder.decode(uint8array);
+    response += data.toString().replaceAll('Â', ''); // appears before § when converting into a string
 
     if (packetLength == 0) packetLength = varint.decode(data) + 6;
 
