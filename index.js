@@ -233,9 +233,8 @@ http.createServer(function(request, response) {
         if (result == 'timeout') {
           response.end(result);
         } else {
-          result = result.substring(result.indexOf('{')).replaceAll('Â', '');
-          console.log(result);
-          response.write(result); // Â appears before § when converting into a string
+          response.setHeader('Content-Type', 'application/json; charset=utf-8');
+          response.write(result.substring(result.indexOf('{')).replaceAll('Â', '')); // Â appears before § when converting into a string
           response.end();
         }
       });
