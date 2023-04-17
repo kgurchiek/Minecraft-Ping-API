@@ -107,7 +107,7 @@ function ping(ip, port, protocol, callback) {
 
   client.on('data', (data) => {
     //client.destroy(); // kill client after server's response
-    response += data.toString().replaceAll('Â', ''); // appears before § when converting into a string
+    response += data.toString();
 
     if (packetLength == 0) packetLength = varint.decode(data) + 6;
 
@@ -233,7 +233,7 @@ http.createServer(function(request, response) {
         if (result == 'timeout') {
           response.end(result);
         } else {
-          response.write(result.substring(result.indexOf('{')));
+          response.write(result.substring(result.indexOf('{').replaceAll('Â', ''))); // Â appears before § when converting into a string
           response.end();
         }
       });
