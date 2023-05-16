@@ -11,9 +11,14 @@ function isCracked(ip, port, version, usesProtocol = false, callback) {
     if (!hasResponded) callback("timeout");
   }, 4000);
 
+  var protocol;
+  if (usesProtocol) {
+    protocol = version;
+    version = minecraftData.postNettyVersionsByProtocolVersion.pc[protocol][0].minecraftVersion;
+  } else {
+    protocol = mcData.version.version;
+  }
   const mcData = minecraftData(version);
-  var protocol = version;
-  if (!usesProtocol) protocol = mcData.version.version;
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
   var hasResponded = false;
 
