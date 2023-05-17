@@ -15,7 +15,7 @@ function isCracked(ip, port, version, usesProtocol = false, callback) {
   if (usesProtocol) {
     protocol = version;
     if (minecraftData.postNettyVersionsByProtocolVersion.pc[version] == null) {
-      version = minecraftData.postNettyVersionsByProtocolVersion.pc[minecraftData.postNettyVersionsByProtocolVersion.pc.length - 1][0].minecraftVersion;
+      version = minecraftData.postNettyVersionsByProtocolVersion.pc[Object.keys(minecraftData.postNettyVersionsByProtocolVersion.pc)[Object.keys(minecraftData.postNettyVersionsByProtocolVersion.pc).length - 1]][0].minecraftVersion;
     } else {
       version = minecraftData.postNettyVersionsByProtocolVersion.pc[version][0].minecraftVersion;
     }
