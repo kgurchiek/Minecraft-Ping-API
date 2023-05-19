@@ -23,7 +23,8 @@ function isCracked(ip, port, version, usesProtocol, callback) {
       version = minecraftData.postNettyVersionsByProtocolVersion.pc[version][0].minecraftVersion;
     }
   } else {
-    protocol = mcData.version.version;
+    console.log(minecraftData)
+    protocol = minecraftData.version.version;
   }
   const mcData = minecraftData(version);
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
