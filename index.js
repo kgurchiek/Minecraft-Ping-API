@@ -193,9 +193,6 @@ http.createServer(function(request, response) {
     } else if (args.port == null || args.port == '') {
       response.write("ERROR: Missing variable 'port'");
       response.end();
-    } else if ((args.version == null || args.version == '') && (args.protocol == null || args.protocol == '')) {
-      response.write("ERROR: Missing variable 'version' or 'protocol'");
-      response.end();
     } else {
       isCracked(args.ip, args.port, args.protocol == null || args.protocol == '' ? args.version : args.protocol, args.protocol != null && args.protocol != '', (result) => {
         response.write(result.toString());
