@@ -6,17 +6,24 @@ const url = require('url');
 const querystring = require('querystring');
 const minecraftData = require("minecraft-data");
 
-function isCracked(ip, port, version, usesProtocol = false, callback) {
+function isCracked(ip, port, version, usesProtocol, callback) {
   setTimeout(function() {
     if (!hasResponded) callback("timeout");
   }, 4000);
+ 
+  if (version == null) version = usesProtocol ? 761 : '1.19.3';
 
   var protocol;
   if (usesProtocol) {
-    protocol = version;
-    version = minecraftData.postNettyVersionsByProtocolVersion.pc[version][0].minecraftVersion;
+    if (minecraftData.postNettyVersionsByProtocolVersion.pc[version] == null) {
+      version = '1.19.3'
+      protocol = 761;
+    } else {
+      protocol = version;
+      version = minecraftData.postNettyVersionsByProtocolVersion.pc[version][0].minecraftVersion;
+    }
   } else {
-    protocol = mcData.version.version;
+    protocol = minecraftData(version).version.version;
   }
   const mcData = minecraftData(version);
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
@@ -185,9 +192,6 @@ http.createServer(function(request, response) {
       response.end();
     } else if (args.port == null || args.port == '') {
       response.write("ERROR: Missing variable 'port'");
-      response.end();
-    } else if ((args.version == null || args.version == '') && (args.protocol == null || args.protocol == '')) {
-      response.write("ERROR: Missing variable 'version' or 'protocol'");
       response.end();
     } else {
       isCracked(args.ip, args.port, args.protocol == null || args.protocol == '' ? args.version : args.protocol, args.protocol != null && args.protocol != '', (result) => {
