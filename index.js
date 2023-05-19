@@ -6,17 +6,20 @@ const url = require('url');
 const querystring = require('querystring');
 const minecraftData = require("minecraft-data");
 
-function isCracked(ip, port, version, usesProtocol = false, callback) {
+function isCracked(ip, port, version, usesProtocol, callback) {
   setTimeout(function() {
     if (!hasResponded) callback("timeout");
   }, 4000);
+ 
+  if (version == null) version = usesProtocol ? 761 : '1.19.3';
 
   var protocol;
   if (usesProtocol) {
-    protocol = version;
     if (minecraftData.postNettyVersionsByProtocolVersion.pc[version] == null) {
-      version = minecraftData.postNettyVersionsByProtocolVersion.pc[Object.keys(minecraftData.postNettyVersionsByProtocolVersion.pc)[Object.keys(minecraftData.postNettyVersionsByProtocolVersion.pc).length - 1]][0].minecraftVersion;
+      version = '1.19.3'
+      protocol = 761;
     } else {
+      protocol = version;
       version = minecraftData.postNettyVersionsByProtocolVersion.pc[version][0].minecraftVersion;
     }
   } else {
