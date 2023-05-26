@@ -13,7 +13,7 @@ function isCracked(ip, port, version, usesProtocol, callback) {
  
   if (version == null) version = usesProtocol ? 761 : '1.19.3';
 
-  var protocol;
+  let protocol;
   if (usesProtocol) {
     if (minecraftData.postNettyVersionsByProtocolVersion.pc[version] == null) {
       version = '1.19.3'
@@ -27,7 +27,7 @@ function isCracked(ip, port, version, usesProtocol, callback) {
   }
   const mcData = minecraftData(version);
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
-  var hasResponded = false;
+  let hasResponded = false;
 
   const client = new net.Socket();
   client.connect(port, ip, () => {
@@ -39,14 +39,14 @@ function isCracked(ip, port, version, usesProtocol, callback) {
       Buffer.from(new Uint16Array([port]).buffer).reverse(), // server port
       Buffer.from([0x02]) // next state (2)
     ]);
-    var packetLength = Buffer.alloc(1);
+    let packetLength = Buffer.alloc(1);
     packetLength.writeUInt8(handshakePacket.length);
-    var buffer = Buffer.concat([packetLength, handshakePacket]);
+    let buffer = Buffer.concat([packetLength, handshakePacket]);
     client.write(buffer);
 
     const packetFormat = mcData.protocol.login.toServer.types.packet_login_start[1];
-    var buffers = [Buffer.from([0x00])];
-    for (var i = 0; i < packetFormat.length; i++) {
+    let buffers = [Buffer.from([0x00])];
+    for (let i = 0; i < packetFormat.length; i++) {
       if (packetFormat[i].type.includes('option')) {
         buffers.push(Buffer.from([0x00]));
       } else {
@@ -93,8 +93,8 @@ function ping(ip, port, protocol, callback) {
     }
   }, 5000);
 
-  var hasResponded = false;
-  var response = '';
+  let hasResponded = false;
+  let response = '';
 
   const client = new net.Socket();
   client.connect(port, ip, () => {
@@ -104,11 +104,11 @@ function ping(ip, port, protocol, callback) {
       Buffer.from([ip.length]),
       Buffer.from(ip, 'utf-8'), // server address
       Buffer.from(new Uint16Array([port]).buffer).reverse(), // server port
-      Buffer.from([0x01]) // next state (2)
+      Buffer.from([0x01]) // next state (1)
     ]);
-    var packetLength = Buffer.alloc(1);
+    let packetLength = Buffer.alloc(1);
     packetLength.writeUInt8(handshakePacket.length);
-    var buffer = Buffer.concat([packetLength, handshakePacket]);
+    let buffer = Buffer.concat([packetLength, handshakePacket]);
     client.write(buffer);
 
     const statusRequestPacket = Buffer.from([0x00]);
@@ -147,8 +147,8 @@ function bedrockPing(ip, port, protocol, callback) {
     }
   }, 5000);
 
-  var hasResponded = false;
-  var response = '';
+  let hasResponded = false;
+  let response = '';
 
   const client = new net.Socket();
   client.connect(port, ip, () => {
@@ -158,9 +158,9 @@ function bedrockPing(ip, port, protocol, callback) {
       0x00, // payload (empty)
       0x01 // payload (empty)
     ]);
-    var packetLength = Buffer.alloc(1);
+    let packetLength = Buffer.alloc(1);
     packetLength.writeUInt8(handshakePacket.length);
-    var buffer = Buffer.concat([packetLength, handshakePacket]);
+    let buffer = Buffer.concat([packetLength, handshakePacket]);
     client.write(buffer);
   });
 
