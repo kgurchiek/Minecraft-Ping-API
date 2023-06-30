@@ -11,7 +11,7 @@ function isCracked(ip, port, version, usesProtocol, callback) {
     if (!hasResponded) callback("timeout");
   }, 4000);
  
-  if (version == null) version = usesProtocol ? 761 : '1.19.3';
+  if (version == null) version = usesProtocol ? 763 : '1.20.1';
 
   var protocol;
   if (usesProtocol) {
