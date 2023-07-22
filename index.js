@@ -85,7 +85,7 @@ function isCracked(ip, port, version, usesProtocol, callback) {
 }
 
 function ping(ip, port, protocol, callback) {
-  var packetLength = 0;
+  var jsonLength = 0;
 
   setTimeout(function() {
     if (!hasResponded) {
@@ -119,12 +119,17 @@ function ping(ip, port, protocol, callback) {
   });
 
   client.on('data', (data) => {
-    //client.destroy(); // kill client after server's response
+    if (jsonLength == 0) {
+      varint.decode(data);
+      const varint1Length = varint.decode.bytes;
+      jsonLength = varint.decode(data.subarray(varint1Length + 1))
+      const varint2Length = varint.decode.bytes;
+      data = data.subarray(varint1Length + 1 + varint2Length);
+    }
     response += data.toString();
 
-    if (packetLength == 0) packetLength = varint.decode(data) + 6;
-
-    if (Buffer.byteLength(response) >= packetLength) {
+    if (Buffer.byteLength(response) >= jsonLength) {
+      client.destroy();
       callback(response);
       hasResponded = true;
     }
@@ -211,7 +216,7 @@ http.createServer(function(request, response) {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
       ping(args.ip, args.port, args.protocol, (result) => {
-        if (result == 'timeout' || JSON.parse(result.substring(result.indexOf('{'))).favicon == null) {
+        if (result == 'timeout' || JSON.parse(result).favicon == null) {
           fs.readFile('default.png', (err, data) => {
             if (err) {
               response.statusCode = 500;
@@ -223,7 +228,7 @@ http.createServer(function(request, response) {
           });
         } else {
           response.setHeader('Content-Type', 'image/png');
-          response.write(Buffer.from(JSON.parse(result.substring(result.indexOf('{'))).favicon.substring(22), 'base64'));
+          response.write(Buffer.from(JSON.parse(result).favicon.substring(22), 'base64'));
           response.end();
         }
       });
@@ -244,7 +249,7 @@ http.createServer(function(request, response) {
           response.end(result);
         } else {
           response.setHeader('Content-Type', 'application/json; charset=utf-8');
-          response.write(result.substring(result.indexOf('{')));
+          response.write(result);
           response.end();
         }
       });
