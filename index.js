@@ -7,8 +7,10 @@ const querystring = require('querystring');
 const minecraftData = require("minecraft-data");
 
 function isCracked(ip, port, version, usesProtocol, callback) {
+  const client = new net.Socket();
   setTimeout(function() {
     if (!hasResponded) callback("timeout");
+    client.destroy();
   }, 4000);
  
   if (version == null) version = usesProtocol ? 763 : '1.20.1';
@@ -29,7 +31,6 @@ function isCracked(ip, port, version, usesProtocol, callback) {
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
   var hasResponded = false;
 
-  const client = new net.Socket();
   client.connect(port, ip, () => {
     const handshakePacket = Buffer.concat([
       Buffer.from([0x00]), // packet ID
@@ -86,17 +87,18 @@ function isCracked(ip, port, version, usesProtocol, callback) {
 
 function ping(ip, port, protocol, callback) {
   var jsonLength = 0;
-
+  const client = new net.Socket();
+  
   setTimeout(function() {
     if (!hasResponded) {
+      client.destroy();
       callback("timeout");
     }
-  }, 5000);
+  }, 4000);
 
   var hasResponded = false;
   var response = '';
 
-  const client = new net.Socket();
   client.connect(port, ip, () => {
     const handshakePacket = Buffer.concat([
       Buffer.from([0x00]), // packet ID
