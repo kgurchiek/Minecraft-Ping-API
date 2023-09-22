@@ -1,4 +1,5 @@
 const net = require('net');
+const dgram = require('dgram');
 const varint = require('varint');
 const fs = require('fs');
 const http = require('http');
@@ -146,47 +147,35 @@ function ping(ip, port, protocol, callback) {
   });
 }
 
-function bedrockPing(ip, port, protocol, callback) {
-  console.log('running bedrockping')
-  setTimeout(function() {
-    if (!hasResponded) {
-      callback("timeout");
-    }
+function bedrockPing(ip, port, callback) {
+  setTimeout(function () {
+    if (!hasResponded) callback('timeout');
   }, 5000);
 
   var hasResponded = false;
-  var response = '';
 
-  const client = new net.Socket();
-  client.connect(port, ip, () => {
-    const handshakePacket = Buffer.from([
-      0x05, // packet ID
-      0x00, // request ID
-      0x00, // payload (empty)
-      0x01 // payload (empty)
-    ]);
-    var packetLength = Buffer.alloc(1);
-    packetLength.writeUInt8(handshakePacket.length);
-    var buffer = Buffer.concat([packetLength, handshakePacket]);
-    client.write(buffer);
+  const time = BigInt(Date.now());
+  const magic = Buffer.from('00ffff00fefefefefdfdfdfd12345678', 'hex');
+  const clientGUID = Buffer.allocUnsafe(8);
+  clientGUID.writeInt32BE(12345, 0);
+  const timeBuffer = Buffer.allocUnsafe(8);
+  timeBuffer.writeBigInt64BE(time, 0);
+  const packet = Buffer.concat([Buffer.from([0x01]), timeBuffer, magic, clientGUID]);
+  const client = dgram.createSocket('udp4');
+  client.on('error', (err) => {
+    console.error(`Error: ${err}`); 
+    client.close(); 
   });
-
-  client.on('data', (data) => {
-    //client.destroy(); // kill client after server's response
-    response += data.toString();
-
-    if (Buffer.byteLength(response) >= varint.decode(data) + 6) {
-      callback(response);
-      hasResponded = true;
+  client.send(packet, port, ip, (err) => {
+    if (err) { 
+      console.error(`Error sending packet: ${err}`);
+      client.close();
     }
   });
-
-  client.on('error', (err) => {
-    //console.error(`Error: ${err}`);
-  });
-
-  client.on('close', () => {
-    //console.log('Connection closed');
+  client.on('message', (message, remote) => {
+      hasResponded = true;
+      callback(message);
+      client.close();
   });
 }
 
@@ -267,7 +256,7 @@ http.createServer(function(request, response) {
     } else {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
-      bedrockPing(args.ip, args.port, args.protocol, (result) => {
+      bedrockPing(args.ip, args.port, (result) => {
         if (result == 'timeout') {
           response.end(result);
         } else {
