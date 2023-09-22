@@ -263,7 +263,7 @@ http.createServer(function(request, response) {
         if (result == 'timeout') {
           response.end(result);
         } else {
-          response.write(result.substring(result.indexOf('{')));
+          response.write(result.toString().substring(result.toString().indexOf('MC')));
           response.end();
         }
       });
