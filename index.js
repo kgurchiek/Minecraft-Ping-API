@@ -148,8 +148,12 @@ function ping(ip, port, protocol, callback) {
 }
 
 function bedrockPing(ip, port, callback) {
+  const client = dgram.createSocket('udp4');
   setTimeout(function () {
-    if (!hasResponded) callback('timeout');
+    if (!hasResponded) {
+      callback('timeout');
+      client.close();
+    }
   }, 5000);
 
   var hasResponded = false;
@@ -161,7 +165,6 @@ function bedrockPing(ip, port, callback) {
   const timeBuffer = Buffer.allocUnsafe(8);
   timeBuffer.writeBigInt64BE(time, 0);
   const packet = Buffer.concat([Buffer.from([0x01]), timeBuffer, magic, clientGUID]);
-  const client = dgram.createSocket('udp4');
   client.on('error', (err) => {
     console.error(`Error: ${err}`); 
     client.close(); 
