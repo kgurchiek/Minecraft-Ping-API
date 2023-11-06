@@ -1,21 +1,16 @@
 # Minecraft-Ping-API
-An API to status ping Minecraft servers
+An API to check the status of Minecraft servers
 
 ## /ping
-Pings a Minecraft Java Edition server to get its status info.
+Retrieve status information for a Minecraft Java Edition server.
 
-### Syntax
-#### ip
-The ip of the Minecraft server to ping.
+### Usage
+#### Parameters
+- `ip`: The IP address of the Minecraft server. Example: `play.cubecraft.net`
+- `port`: The port of the Minecraft server. Example: `25565`
+- `protocol` (optional): The Minecraft protocol to use for pinging (defaults to 0). Example: `761`
 
-#### port
-The port of the Minecraft server to ping.
-
-#### protocol (optional)
-The Minecraft protocol to ping the server with. Defaults to 0.
-
-Example usage:
-Ping CubeCraft: https://ping.cornbread2100.com/ping/?ip=play.cubecraft.net&port=25565&protocol=761
+Example to ping CubeCraft: `https://ping.cornbread2100.com/ping/?ip=play.cubecraft.net&port=25565&protocol=761`
 
 ## /favicon
 Gets the favicon of a Minecraft server.
