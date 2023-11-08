@@ -15,7 +15,7 @@ An API to check the status of Minecraft servers. This is currently hosted at htt
 
 | Endpoint | Description | Arguments | Example |
 | --- | --- | --- | --- |
-| /ping | Retrieve status information for a Minecraft Java Edition server | `ip`, `port`, `protocol` (optional, default - 0) | Ping CubeCraft: https://ping.cornbread2100.com/ping/?ip=play.cubecraft.net&port=25565&protocol=761 |
-| /favicon | Gets the favicon of a Minecraft server | `ip`, `port`, `protocol` (optional, default = 0) | Get CubeCraft's favivon: https://ping.cornbread2100.com/favicon/?ip=play.cubecraft.net&port=25565&protocol=761 |
-| /bedrockping | Pings a Minecraft Bedrock Edition server | `ip`, `port` | Ping CubeCraft: https://ping.cornbread2100.com/bedrockping/?ip=play.cubecraft.net&port=19132 |
-| /cracked | Returns whether or not a Minecraft server is cracked (offline-mode) | `ip` (required), `port` (optional, default - 25565), `version` | Check if CubeCraft is cracked: https://ping.cornbread2100.com/cracked/?ip=play.cubecraft.net&port=25565&version=1.19.3 |
+| /ping | Retrieve status information for a Minecraft Java Edition server | `ip`, `port`, `protocol` (optional, default: 0) | Ping CubeCraft: https://ping.cornbread2100.com/ping/?ip=play.cubecraft.net&port=25565&protocol=761 |
+| /favicon | Gets the favicon/thumbnail of a Minecraft Java Edition server | `ip`, `port`, `protocol` (optional, default: 0) | Get CubeCraft's favivon: https://ping.cornbread2100.com/favicon/?ip=play.cubecraft.net&port=25565&protocol=761 |
+| /bedrockping | Retrieve status information for a Minecraft Bedrock Edition server | `ip`, `port` | Ping CubeCraft: https://ping.cornbread2100.com/bedrockping/?ip=play.cubecraft.net&port=19132 |
+| /cracked | Returns whether or not a Minecraft Java Edition server is cracked (offline-mode) | `ip`, `port`, `version`/`protocol` (optional, default: 1.20.1. Only `version` or `protocol` is needed, not both) | Check if CubeCraft is cracked: https://ping.cornbread2100.com/cracked/?ip=play.cubecraft.net&port=25565&version=1.19.3 |
