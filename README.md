@@ -5,7 +5,7 @@
     <a href="https://nodejs.org/en"><img src="https://img.shields.io/badge/Node.js-43853D?logo=node.js&logoColor=white&style=for-the-badge" alt="Node.js"/></a>
     <a href="https://github.com/kgurchiek/Minecraft-Ping-API"><img src="https://img.shields.io/github/last-commit/kgurchiek/Minecraft-Ping-API?style=for-the-badge&logo=github&logoColor=white&logoWidth=20"/></a>
     <br>
-    <img src="https://github.com/nikolan123/Minecraft-Ping-API/blob/main/logo.png?raw=true" alt="Minecraft Ping API Logo" width="20%"/>
+    <img src="https://github.com/kgurchiek/Minecraft-Ping-API/blob/main/logo.png?raw=true" alt="Minecraft Ping API Logo" width="20%"/>
 </div>
 
 ## 📝 About
