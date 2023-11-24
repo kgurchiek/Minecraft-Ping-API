@@ -183,7 +183,11 @@ function bedrockPing(ip, port, callback) {
 }
 
 http.createServer(function(request, response) {
-  //console.log(request.url)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Headers', '*');
+	res.setHeader('Access-Control-Request-Method', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+	//console.log(request.url)
   args = querystring.parse(url.parse(request.url).query);
   if (url.parse(request.url).pathname == '/cracked/') {
     if (args.ip == null || args.ip == '') {
