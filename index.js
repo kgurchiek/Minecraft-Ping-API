@@ -1,4 +1,3 @@
-const net = require('net');
 const dgram = require('dgram');
 const varint = require('varint');
 const fs = require('fs');
@@ -6,6 +5,7 @@ const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
 const minecraftData = require("minecraft-data");
+const send = require('./send.js');
 
 function isCracked(ip, port, version, usesProtocol, callback) {
   const client = new net.Socket();
@@ -87,65 +87,38 @@ function isCracked(ip, port, version, usesProtocol, callback) {
 }
 
 function ping(ip, port, protocol, callback) {
-  var jsonLength = 0;
-  const client = new net.Socket();
-  
-  setTimeout(function() {
-    if (!hasResponded) {
-      client.destroy();
-      callback("timeout");
-    }
-  }, 4000);
-
-  var hasResponded = false;
-  var response = '';
-
-  client.connect(port, ip, () => {
-    const handshakePacket = Buffer.concat([
-      Buffer.from([0x00]), // packet ID
-      Buffer.from(varint.encode(protocol)), //protocol version
-      Buffer.from([ip.length]),
-      Buffer.from(ip, 'utf-8'), // server address
-      Buffer.from(new Uint16Array([port]).buffer).reverse(), // server port
-      Buffer.from([0x01]) // next state (2)
-    ]);
-    var packetLength = Buffer.alloc(1);
-    packetLength.writeUInt8(handshakePacket.length);
-    var buffer = Buffer.concat([packetLength, handshakePacket]);
-    client.write(buffer);
-
-    const statusRequestPacket = Buffer.from([0x00]);
-    packetLength = Buffer.alloc(1);
-    packetLength.writeUInt8(statusRequestPacket.length);
-    buffer = Buffer.concat([packetLength, statusRequestPacket]);
-    client.write(buffer);
-  });
-
-  client.on('data', (data) => {
-    if (jsonLength == 0) {
-      varint.decode(data);
-      const varint1Length = varint.decode.bytes;
-      jsonLength = varint.decode(data.subarray(varint1Length + 1))
-      const varint2Length = varint.decode.bytes;
-      data = data.subarray(varint1Length + 1 + varint2Length);
-    }
-    response += data.toString();
-
-    if (Buffer.byteLength(response) >= jsonLength) {
-      client.destroy();
-      callback(response);
-      hasResponded = true;
-    }
-  });
-
-  client.on('error', (err) => {
-    //console.error(`Error: ${err}`);
-  });
-
-  client.on('close', () => {
-    //console.log('Connection closed');
-  });
-}
+  const handshakePacket = Buffer.concat([
+    Buffer.from([0x00]), // packet ID
+    Buffer.from(varint.encode(protocol)), //protocol version
+    Buffer.from([ip.length]),
+    Buffer.from(ip, 'utf-8'), // server address
+    Buffer.from(new Uint16Array([port]).buffer).reverse(), // server port
+    Buffer.from([0x01]), // next state (2)
+    Buffer.from([0x01]), // second packet length
+    Buffer.from([0x00]) // status request
+  ]);
+  var packetLength = Buffer.alloc(1);
+  packetLength.writeUInt8(handshakePacket.length - 2);
+  var buffer = Buffer.concat([packetLength, handshakePacket]);
+  var response = await send(ip, port, buffer, timeout);
+  if (typeof response == 'string') {
+    callback(`Error: ${response}`);
+    return;
+  }
+  if (response[0] != 0) {
+    callback('Error: not a Minecraft server');
+    return;
+  }
+  response = response.subarray(1);
+  const fieldLength = varint.decode(response);
+  response = response.subarray(varint.decode.bytes, fieldLength + varint.decode.bytes).toString();
+  try {
+    callback(JSON.parse(response));
+  } catch (error) {
+    //console.log(error.toString(), response)
+    callback('error');
+  }
+},
 
 function bedrockPing(ip, port, callback) {
   const client = dgram.createSocket('udp4');
@@ -214,11 +187,12 @@ http.createServer(function(request, response) {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
       ping(args.ip, args.port, args.protocol, (result) => {
-        if (result == 'timeout' || JSON.parse(result).favicon == null) {
+        if (typeof result == 'string') response.end(result);
+        else if (result.favicon == null) {
           fs.readFile('default.png', (err, data) => {
             if (err) {
               response.statusCode = 500;
-              response.end('Error reading file');
+              response.end('Default favicon (error reading file)');
             } else {
               response.setHeader('Content-Type', 'image/png');
               response.end(data);
@@ -226,7 +200,7 @@ http.createServer(function(request, response) {
           });
         } else {
           response.setHeader('Content-Type', 'image/png');
-          response.write(Buffer.from(JSON.parse(result).favicon.substring(22), 'base64'));
+          response.write(Buffer.from(result.favicon.substring(22), 'base64'));
           response.end();
         }
       });
@@ -243,9 +217,8 @@ http.createServer(function(request, response) {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
       ping(args.ip, args.port, args.protocol, (result) => {
-        if (result == 'timeout') {
-          response.end(result);
-        } else {
+        if (typeof result == 'string') response.end(result);
+        else {
           response.setHeader('Content-Type', 'application/json; charset=utf-8');
           response.write(result);
           response.end();
