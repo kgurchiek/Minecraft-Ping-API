@@ -86,7 +86,7 @@ function isCracked(ip, port, version, usesProtocol, callback) {
   });
 }
 
-function ping(ip, port, protocol, callback) {
+async function ping(ip, port, protocol, callback) {
   const handshakePacket = Buffer.concat([
     Buffer.from([0x00]), // packet ID
     Buffer.from(varint.encode(protocol)), //protocol version
@@ -100,7 +100,7 @@ function ping(ip, port, protocol, callback) {
   var packetLength = Buffer.alloc(1);
   packetLength.writeUInt8(handshakePacket.length - 2);
   var buffer = Buffer.concat([packetLength, handshakePacket]);
-  var response = await send(ip, port, buffer, timeout);
+  var response = await send(ip, port, buffer, 6000);
   if (typeof response == 'string') {
     callback(`Error: ${response}`);
     return;
@@ -115,10 +115,10 @@ function ping(ip, port, protocol, callback) {
   try {
     callback(JSON.parse(response));
   } catch (error) {
-    //console.log(error.toString(), response)
+    //console.log(error, response)
     callback('error');
   }
-},
+}
 
 function bedrockPing(ip, port, callback) {
   const client = dgram.createSocket('udp4');
@@ -156,10 +156,10 @@ function bedrockPing(ip, port, callback) {
 }
 
 http.createServer(function(request, response) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Headers', '*');
-	res.setHeader('Access-Control-Request-Method', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+  response.setHeader('Access-Control-Allow-Origin', '*');
+	response.setHeader('Access-Control-Allow-Headers', '*');
+	response.setHeader('Access-Control-Request-Method', '*');
+	response.setHeader('Access-Control-Allow-Methods', 'GET, POST');
 	//console.log(request.url)
   args = querystring.parse(url.parse(request.url).query);
   if (url.parse(request.url).pathname == '/cracked/') {
@@ -195,12 +195,15 @@ http.createServer(function(request, response) {
               response.end('Default favicon (error reading file)');
             } else {
               response.setHeader('Content-Type', 'image/png');
+              response.setHeader('Content-Length', Buffer.byteLength(data, 'utf-8'));
               response.end(data);
             }
           });
         } else {
+          const data  = Buffer.from(result.favicon.substring(22), 'base64');
           response.setHeader('Content-Type', 'image/png');
-          response.write(Buffer.from(result.favicon.substring(22), 'base64'));
+          response.setHeader('Content-Length', data.length);
+          response.write(data);
           response.end();
         }
       });
@@ -220,7 +223,7 @@ http.createServer(function(request, response) {
         if (typeof result == 'string') response.end(result);
         else {
           response.setHeader('Content-Type', 'application/json; charset=utf-8');
-          response.write(result);
+          response.write(JSON.stringify(result));
           response.end();
         }
       });
