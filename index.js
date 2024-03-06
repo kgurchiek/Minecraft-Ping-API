@@ -164,9 +164,11 @@ http.createServer(function(request, response) {
   args = querystring.parse(url.parse(request.url).query);
   if (url.parse(request.url).pathname == '/cracked/') {
     if (args.ip == null || args.ip == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
       response.end();
     } else if (args.port == null || args.port == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'port'");
       response.end();
     } else {
@@ -178,17 +180,22 @@ http.createServer(function(request, response) {
   } else if (url.parse(request.url).pathname == '/favicon/') {
     args = querystring.parse(url.parse(request.url).query);
     if (args.ip == null || args.ip == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
       response.end();
     } else if (args.port == null || args.port == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'port'");
       response.end();
     } else {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
       ping(args.ip, args.port, args.protocol, (result) => {
-        if (typeof result == 'string') response.end(result);
-        else if (result.favicon == null) {
+        if (typeof result == 'string') {
+          if (result == 'Error: timeout') response.statusCode = 408;
+          else response.statusCode = 500;
+          response.end(result);
+        } else if (result.favicon == null) {
           fs.readFile('default.png', (err, data) => {
             if (err) {
               response.statusCode = 500;
@@ -200,7 +207,7 @@ http.createServer(function(request, response) {
             }
           });
         } else {
-          const data  = Buffer.from(result.favicon.substring(22), 'base64');
+          const data = Buffer.from(result.favicon.substring(22), 'base64');
           response.setHeader('Content-Type', 'image/png');
           response.setHeader('Content-Length', data.length);
           response.write(data);
@@ -211,17 +218,22 @@ http.createServer(function(request, response) {
   } else if (url.parse(request.url).pathname == '/ping/') {
     args = querystring.parse(url.parse(request.url).query);
     if (args.ip == null || args.ip == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
       response.end();
     } else if (args.port == null || args.port == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'port'");
       response.end();
     } else {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
       ping(args.ip, args.port, args.protocol, (result) => {
-        if (typeof result == 'string') response.end(result);
-        else {
+        if (typeof result == 'string') {
+          if (result == 'Error: timeout') response.statusCode = 408;
+          else response.statusCode = 500;
+          response.end(result);
+        } else {
           response.setHeader('Content-Type', 'application/json; charset=utf-8');
           response.write(JSON.stringify(result));
           response.end();
@@ -231,9 +243,11 @@ http.createServer(function(request, response) {
   } else if (url.parse(request.url).pathname == '/bedrockping/') {
     args = querystring.parse(url.parse(request.url).query);
     if (args.ip == null || args.ip == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
       response.end();
     } else if (args.port == null || args.port == '') {
+      response.statusCode = 400;
       response.write("ERROR: Missing variable 'port'");
       response.end();
     } else {
@@ -241,6 +255,7 @@ http.createServer(function(request, response) {
 
       bedrockPing(args.ip, args.port, (result) => {
         if (result == 'timeout') {
+          response.statusCode = 408;
           response.end(result);
         } else {
           response.write(result.toString().substring(result.toString().indexOf('MC')));
