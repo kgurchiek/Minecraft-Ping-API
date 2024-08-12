@@ -116,7 +116,7 @@ async function ping(ip, port, protocol, callback) {
     callback(JSON.parse(response));
   } catch (error) {
     //console.log(error, response)
-    callback('Error');
+    callback(`Error: ${error}`);
   }
 }
 
