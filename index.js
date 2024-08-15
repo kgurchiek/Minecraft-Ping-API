@@ -7,13 +7,7 @@ const querystring = require('querystring');
 const minecraftData = require("minecraft-data");
 const send = require('./send.js');
 
-function isCracked(ip, port, version, usesProtocol, callback) {
-  const client = new net.Socket();
-  setTimeout(function() {
-    if (!hasResponded) callback("timeout");
-    client.destroy();
-  }, 4000);
- 
+async function isCracked(ip, port, version, usesProtocol, callback) {
   if (version == null) version = usesProtocol ? 763 : '1.20.1';
 
   var protocol;
@@ -32,58 +26,42 @@ function isCracked(ip, port, version, usesProtocol, callback) {
   const username = `CrackedTest${Math.round(Math.random() * 1000)}`;
   var hasResponded = false;
 
-  client.connect(port, ip, () => {
-    const handshakePacket = Buffer.concat([
-      Buffer.from([0x00]), // packet ID
-      Buffer.from(varint.encode(protocol)), //protocol version
-      Buffer.from([ip.length]),
-      Buffer.from(ip, 'utf-8'), // server address
-      Buffer.from(new Uint16Array([port]).buffer).reverse(), // server port
-      Buffer.from([0x02]) // next state (2)
-    ]);
-    var packetLength = Buffer.alloc(1);
-    packetLength.writeUInt8(handshakePacket.length);
-    var buffer = Buffer.concat([packetLength, handshakePacket]);
-    client.write(buffer);
+  const handshakePacket = Buffer.concat([
+    Buffer.from([0x00]), // packet ID
+    Buffer.from(varint.encode(protocol)), //protocol version
+    Buffer.from([ip.length]),
+    Buffer.from(ip, 'utf-8'), // server address
+    Buffer.from(new Uint16Array([port]).buffer).reverse(), // server port
+    Buffer.from([0x02]) // next state (2)
+  ]);
+   var packetLength = Buffer.alloc(1);
+  packetLength.writeUInt8(handshakePacket.length);
+  var buffer = Buffer.concat([packetLength, handshakePacket]);
 
-    const packetFormat = mcData.protocol.login.toServer.types.packet_login_start[1];
-    var buffers = [Buffer.from([0x00])];
-    for (var i = 0; i < packetFormat.length; i++) {
-      if (packetFormat[i].type.includes('option')) {
-        buffers.push(Buffer.from([0x00]));
-      } else {
-        switch (packetFormat[i].name) {
-          case 'username':
-            buffers.push(Buffer.from([username.length])); // length of username
-            buffers.push(Buffer.from(username, 'utf-8')); // username
-            break;
-          default:
-            break;
-        }
+  const packetFormat = mcData.protocol.login.toServer.types.packet_login_start[1];
+  var buffers = [Buffer.from([0x00])];
+  for (var i = 0; i < packetFormat.length; i++) {
+    if (packetFormat[i].type.includes('option')) {
+      buffers.push(Buffer.from([0x00]));
+    } else {
+      switch (packetFormat[i].name) {
+        case 'username':
+          buffers.push(Buffer.from([username.length])); // length of username
+          buffers.push(Buffer.from(username, 'utf-8')); // username
+          break;
+        default:
+          break;
       }
     }
+  }
 
-    const startLoginPacket = Buffer.concat(buffers);
-    packetLength = Buffer.alloc(1);
-    packetLength.writeUInt8(startLoginPacket.length);
-    buffer = Buffer.concat([packetLength, startLoginPacket]);
-
-    client.write(buffer);
-  });
-
-  client.on('data', (data) => {
-    client.destroy(); // kill client after server's response
-    callback(data[1] != 1);
-    hasResponded = true;
-  });
-
-  client.on('error', (err) => {
-    //console.error(`Error: ${err}`);
-  });
-
-  client.on('close', () => {
-    //console.log('Connection closed');
-  });
+  const startLoginPacket = Buffer.concat(buffers);
+  packetLength = Buffer.alloc(1);
+  packetLength.writeUInt8(startLoginPacket.length);
+  const response = await send(ip, port, Buffer.concat([buffer, packetLength, startLoginPacket]), 6000);
+  if (typeof response != 'string') console.log(response)
+  if (typeof response == 'string') callback(`Error: ${response}`);
+  else callback(response[0] == 0 ? 'unknown' : (response[0] != 1));
 }
 
 async function ping(ip, port, protocol, callback) {
@@ -162,7 +140,8 @@ http.createServer(function(request, response) {
 	response.setHeader('Access-Control-Allow-Methods', 'GET, POST');
 	//console.log(request.url)
   args = querystring.parse(url.parse(request.url).query);
-  if (url.parse(request.url).pathname == '/cracked/') {
+  if (url.parse(request.url).pathname == '/cracked') {
+    console.log(args)
     if (args.ip == null || args.ip == '') {
       response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
@@ -177,8 +156,7 @@ http.createServer(function(request, response) {
         response.end();
       });
     }
-  } else if (url.parse(request.url).pathname == '/favicon/') {
-    args = querystring.parse(url.parse(request.url).query);
+  } else if (url.parse(request.url).pathname == '/favicon') {
     if (args.ip == null || args.ip == '') {
       response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
@@ -215,8 +193,7 @@ http.createServer(function(request, response) {
         }
       });
     }
-  } else if (url.parse(request.url).pathname == '/ping/') {
-    args = querystring.parse(url.parse(request.url).query);
+  } else if (url.parse(request.url).pathname == '/ping') {
     if (args.ip == null || args.ip == '') {
       response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
@@ -240,8 +217,7 @@ http.createServer(function(request, response) {
         }
       });
     }
-  } else if (url.parse(request.url).pathname == '/bedrockping/') {
-    args = querystring.parse(url.parse(request.url).query);
+  } else if (url.parse(request.url).pathname == '/bedrockping') {
     if (args.ip == null || args.ip == '') {
       response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
