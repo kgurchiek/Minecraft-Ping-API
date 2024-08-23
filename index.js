@@ -59,7 +59,6 @@ async function isCracked(ip, port, version, usesProtocol, callback) {
   packetLength = Buffer.alloc(1);
   packetLength.writeUInt8(startLoginPacket.length);
   const response = await send(ip, port, Buffer.concat([buffer, packetLength, startLoginPacket]), 6000);
-  if (typeof response != 'string') console.log(response)
   if (typeof response == 'string') callback(`Error: ${response}`);
   else callback(response[0] == 0 ? 'unknown' : (response[0] != 1));
 }
