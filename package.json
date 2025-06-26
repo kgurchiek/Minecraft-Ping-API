@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "minecraft-data": "^3.90.0",
+    "varint": "^6.0.0"
+  }
+}

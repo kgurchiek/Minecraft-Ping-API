@@ -168,21 +168,23 @@ http.createServer(function(request, response) {
       if (args.protocol == null || args.protocol == '') args.protocol = 0;
 
       ping(args.ip, args.port, args.protocol, (result) => {
-        if (typeof result == 'string') {
-          if (result == 'Error: timeout') response.statusCode = 408;
-          else response.statusCode = 500;
-          response.end(result);
-        } else if (result.favicon == null) {
-          fs.readFile('default.png', (err, data) => {
-            if (err) {
-              response.statusCode = 500;
-              response.end('Default favicon (error reading file)');
-            } else {
-              response.setHeader('Content-Type', 'image/png');
-              response.setHeader('Content-Length', Buffer.byteLength(data, 'utf-8'));
-              response.end(data);
-            }
-          });
+        if (result.favicon == null) {
+          if (typeof result == 'string' && args.errors != 'false') {
+            if (result == 'Error: timeout') response.statusCode = 408;
+            else response.statusCode = 500;
+            response.end(result);
+          } else {
+            fs.readFile('default.png', (err, data) => {
+              if (err) {
+                response.statusCode = 500;
+                response.end('Default favicon (error reading file)');
+              } else {
+                response.setHeader('Content-Type', 'image/png');
+                response.setHeader('Content-Length', Buffer.byteLength(data, 'utf-8'));
+                response.end(data);
+              }
+            });
+          }
         } else {
           const data = Buffer.from(result.favicon.substring(22), 'base64');
           response.setHeader('Content-Type', 'image/png');
