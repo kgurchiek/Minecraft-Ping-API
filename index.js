@@ -140,7 +140,6 @@ http.createServer(function(request, response) {
 	//console.log(request.url)
   args = querystring.parse(url.parse(request.url).query);
   if (url.parse(request.url).pathname == '/cracked') {
-    console.log(args)
     if (args.ip == null || args.ip == '') {
       response.statusCode = 400;
       response.write("ERROR: Missing variable 'ip'");
