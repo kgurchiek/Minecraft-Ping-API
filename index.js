@@ -137,6 +137,7 @@ http.createServer(function(request, response) {
 	response.setHeader('Access-Control-Allow-Headers', '*');
 	response.setHeader('Access-Control-Request-Method', '*');
 	response.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+	response.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 	//console.log(request.url)
   args = querystring.parse(url.parse(request.url).query);
   if (url.parse(request.url).pathname == '/cracked') {
